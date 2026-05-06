@@ -4,6 +4,9 @@ Team Cipe Wro future engineers project
 
 Hello and welcome to the collaborative project from 0liverK(on github) and me
 
+All fothos and diagramms are under branch Photo. 
+
+
 Our car:
 •body (skeleton)
 •motors and useges
