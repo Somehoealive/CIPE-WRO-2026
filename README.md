@@ -30,7 +30,7 @@ In case of a motor breaking or burning out they are easy to replace, even though
 
 CAMERA 
 
-The camera for use is ESP 32 Camera module. Edga impulse was used in writing the program to recognize shapes/objects. The object recognition program was based of off a controllgroup of picktures. The testing of the camera was done on a seprete setup from the car wich is seen on the pickture. The camera diagramm is also included where its simpler to understand how everything was built. 
+The camera for use is ESP 32 Camera module. Edga impulse was used in writing the program to recognize shapes/objects. The object recognition program was based of off a controllgroup of picctures. The testing of the camera was done on a seprete setup from the car wich is seen on the pickture. The camera diagramm is also included where its simpler to understand how everything was built. 
 
 
 BUTTON
