@@ -24,6 +24,11 @@ https://www.tinkercad.com/things/bGn80zf6chB-powerful-kieran/edit?returnTo=%2Fth
 Small screws and bolts were used to hold everything together (any brand/type will do). Hot glue is used only if there is no other way to hold pices together. Car wheles are the most commonly used wheeles for DIY Arduino projects. (diy -do it yourself)
 Can be found under serch: Arduino wheel
 
+or
+
+We used the Base of a remote controlled car and modofied it to fit the requirements. Like...
+
+
 
 MOTORS
 
