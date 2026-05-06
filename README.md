@@ -40,4 +40,4 @@ BUTTON
 
 BRAIN & BATTERY
 
-For programming we use arduino uno with c and c++ code. For batery we used 
+For programming we use arduino uno with c and c++ code. We use a battery for arduino and the camera. For the motors we use a battery pack. 
