@@ -1,0 +1,229 @@
+#include <SoftwareSerial.h>
+
+// ===============================
+// ESP32-CAM COMMUNICATION
+// ===============================
+SoftwareSerial espSerial(2, 3);
+
+String command = "";
+
+// ===============================
+// DRIVE MOTOR (L9110 STYLE)
+// ===============================
+const int motorPWM = 5;
+const int motorDIR = 6;
+
+// ===============================
+// STEERING MOTOR
+// ===============================
+const int IN3 = 9;
+const int IN4 = 10;
+
+// ===============================
+// ULTRASONIC SENSORS
+// ===============================
+const int trigLeft = 11;
+const int echoLeft = 12;
+
+const int trigRight = 13;
+const int echoRight = A0;
+
+// ===============================
+// SPEED CONTROL
+// ===============================
+int targetSpeed = 130;
+int currentSpeed = 150;
+
+// ===============================
+// SETUP
+// ===============================
+void setup() {
+
+  Serial.begin(115200);
+  espSerial.begin(115200);
+
+  pinMode(motorPWM, OUTPUT);
+  pinMode(motorDIR, OUTPUT);
+
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  pinMode(trigLeft, OUTPUT);
+  pinMode(echoLeft, INPUT);
+
+  pinMode(trigRight, OUTPUT);
+  pinMode(echoRight, INPUT);
+
+  stopCar();
+}
+
+// ===============================
+// LOOP
+// ===============================
+void loop() {
+
+  forward();
+
+  updateSpeed();
+
+  int leftDistance = getDistance(trigLeft, echoLeft);
+  int rightDistance = getDistance(trigRight, echoRight);
+
+  // ESP commands
+  if (espSerial.available()) {
+
+    command = espSerial.readStringUntil('\n');
+    command.trim();
+
+    if (command == "GO_LEFT") steerLeft();
+    if (command == "GO_RIGHT") steerRight();
+  }
+
+  ultrasonicDecision(leftDistance, rightDistance);
+
+  delay(50);
+
+  Serial.println(currentSpeed);
+  Serial.println(rightDistance);
+  Serial.println(leftDistance);
+}
+
+// ===============================
+// ULTRASONIC SENSOR
+// ===============================
+int getDistance(int trigPin, int echoPin) {
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH, 30000);
+
+  if (duration == 0) {
+    return 200; // treat as "no wall"
+  }
+
+  int distance = duration * 0.034 / 2;
+
+  return distance;
+}
+
+// ===============================
+// ULTRASONIC + SPEED LOGIC
+// ===============================
+void ultrasonicDecision(int leftDistance, int rightDistance) {
+
+  // fix invalid readings
+  if (leftDistance == 0) leftDistance = 200;
+  if (rightDistance == 0) rightDistance = 200;
+
+  // =========================
+  // 1. BOTH CLOSE → forward (highest priority)
+  // =========================
+  if (leftDistance < 10 && rightDistance < 10) {
+    forward();
+    return;
+  }
+
+  // =========================
+  // 2. OBSTACLE AVOIDANCE
+  // =========================
+  if (leftDistance < 10) {
+    steerRight();
+    return;
+  }
+
+  if (rightDistance < 10) {
+    steerLeft();
+    return;
+  }
+
+  // =========================
+  // 3. NORMAL RANGE (MOST IMPORTANT FIX)
+  // =========================
+  if (leftDistance <= 80 && rightDistance <= 80) {
+    forward();
+    return;
+  }
+
+  // =========================
+  // 4. ONLY IF ONE SIDE IS EXTREMELY FAR
+  // =========================
+  if (leftDistance > rightDistance + 20) {
+    steerLeft();
+    return;
+  }
+
+  if (rightDistance > leftDistance + 20) {
+    steerRight();
+    return;
+  }
+
+  // =========================
+  // DEFAULT SAFE STATE
+  // =========================
+  forward();
+}
+
+// ===============================
+// DRIVE
+// ===============================
+void forward() {
+
+  digitalWrite(motorDIR, LOW);
+  analogWrite(motorPWM, currentSpeed);
+}
+
+void stopDrive() {
+  analogWrite(motorPWM, 0);
+}
+
+// ===============================
+// SPEED SMOOTHING
+// ===============================
+void updateSpeed() {
+
+  if (currentSpeed < targetSpeed) currentSpeed += 5;
+  if (currentSpeed > targetSpeed) currentSpeed -= 5;
+}
+
+// ===============================
+// STEERING
+// ===============================
+void steerLeft() {
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+
+  delay(500);
+  stopSteering();
+}
+
+void steerRight() {
+
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+
+  delay(500);
+  stopSteering();
+}
+
+void stopSteering() {
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+// ===============================
+// STOP
+// ===============================
+void stopCar() {
+
+  stopDrive();
+  stopSteering();
+}
+
